@@ -5,32 +5,40 @@
 
 ## Engine & Language
 
-- **Engine**: [TO BE CONFIGURED — run /setup-engine]
-- **Language**: [TO BE CONFIGURED]
-- **Rendering**: [TO BE CONFIGURED]
-- **Physics**: [TO BE CONFIGURED]
+- **Engine**: Godot 4.6
+- **Language**: GDScript (primary), C++ via GDExtension (performance-critical)
+- **Rendering**: Forward+ (default for 3D)
+- **Physics**: Jolt (Godot 4.6 default)
+- **Vibe-Coding**: Godogen (github.com/htdt/godogen)
 
 ## Naming Conventions
 
-- **Classes**: [TO BE CONFIGURED]
-- **Variables**: [TO BE CONFIGURED]
-- **Signals/Events**: [TO BE CONFIGURED]
-- **Files**: [TO BE CONFIGURED]
-- **Scenes/Prefabs**: [TO BE CONFIGURED]
-- **Constants**: [TO BE CONFIGURED]
+- **Classes**: PascalCase (e.g., `PlayerController`)
+- **Variables/Functions**: snake_case (e.g., `move_speed`, `take_damage()`)
+- **Signals**: snake_case past tense (e.g., `health_changed`, `quest_completed`)
+- **Files**: snake_case matching class (e.g., `player_controller.gd`)
+- **Scenes**: PascalCase matching root node (e.g., `PlayerController.tscn`)
+- **Constants**: UPPER_SNAKE_CASE (e.g., `MAX_HEALTH`)
+
+## Platform Targets
+
+- **Primary**: PC (Laptop)
+- **Secondary**: iPad (with game controller)
+- **Stretch**: Nintendo Switch
+- **Input**: Gamepad-first (controller-native UI and controls)
 
 ## Performance Budgets
 
-- **Target Framerate**: [TO BE CONFIGURED]
-- **Frame Budget**: [TO BE CONFIGURED]
-- **Draw Calls**: [TO BE CONFIGURED]
-- **Memory Ceiling**: [TO BE CONFIGURED]
+- **Target Framerate**: 60fps (PC/iPad), 30fps (Switch)
+- **Frame Budget**: 16.6ms (PC/iPad), 33.3ms (Switch)
+- **Draw Calls**: <500 (Switch constraint drives this)
+- **Memory Ceiling**: 2GB (Switch constraint)
 
 ## Testing
 
-- **Framework**: [TO BE CONFIGURED]
-- **Minimum Coverage**: [TO BE CONFIGURED]
-- **Required Tests**: Balance formulas, gameplay systems, networking (if applicable)
+- **Framework**: GUT (Godot Unit Test)
+- **Minimum Coverage**: 80% for gameplay systems, balance formulas
+- **Required Tests**: Balance formulas, gameplay systems, ability rotation timing
 
 ## Forbidden Patterns
 
@@ -40,7 +48,8 @@
 ## Allowed Libraries / Addons
 
 <!-- Add approved third-party dependencies here -->
-- [None configured yet — add as dependencies are approved]
+- Godogen (vibe-coding workflow)
+- [Others TBD — add as dependencies are approved]
 
 ## Architecture Decisions Log
 
