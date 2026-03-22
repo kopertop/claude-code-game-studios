@@ -27,10 +27,10 @@ controller-first (Pillar 5) and pausable (Pillar 1).
 | 2 | Player Controller | Core | MVP | Designed | design/gdd/player-controller.md | Input System |
 | 3 | Camera System | Core | MVP | Designed | design/gdd/camera-system.md | Input System, Player Controller |
 | 4 | Pause System | Core | MVP | Designed | design/gdd/pause-system.md | -- |
-| 5 | Scene/Zone Management | Core | MVP | Not Started | -- | Settings System, Pause System |
-| 6 | Ability Rotation Combat | Gameplay | MVP | Not Started | -- | Player Controller, Camera, Health & Resource, Ability Database, Input, SFX |
+| 5 | Scene/Zone Management | Core | MVP | Designed | design/gdd/scene-zone-management.md | Settings System, Pause System |
+| 6 | Ability Rotation Combat | Gameplay | MVP | Designed | design/gdd/ability-rotation-combat.md | Player Controller, Camera, Health & Resource, Ability Database, Input, SFX |
 | 7 | Health & Resource System | Gameplay | MVP | Designed | design/gdd/health-resource-system.md | Character Stats |
-| 8 | Damage Calculation | Gameplay | MVP | Not Started | -- | Character Stats, Ability Database, Health & Resource |
+| 8 | Damage Calculation | Gameplay | MVP | Designed | design/gdd/damage-calculation.md | Character Stats, Ability Database, Health & Resource |
 | 9 | Status Effects | Gameplay | V.Slice | Not Started | -- | Health & Resource, Ability Database, Damage Calculation |
 | 10 | Enemy AI | Gameplay | V.Slice | Not Started | -- | Player Controller, Scene/Zone Mgmt, Health & Resource, Ability Database |
 | 11 | Loot & Drop Tables | Gameplay | V.Slice | Not Started | -- | Item Database, Inventory, Enemy AI |
@@ -235,10 +235,10 @@ A "session" is one focused design conversation producing a complete GDD.
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 40 |
-| Design docs started | 9 |
+| Design docs started | 12 |
 | Design docs reviewed | 0 |
 | Design docs approved | 0 |
-| MVP systems designed | 9/12 |
+| MVP systems designed | 12/12 |
 | Vertical Slice systems designed | 0/12 |
 
 ---
