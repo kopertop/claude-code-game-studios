@@ -356,10 +356,21 @@ func _perform_dodge() -> void:
 func _try_use_ability_smart(ability) -> void:
 	var needs_enemy = ability.target_type == AbilityData.TargetType.SINGLE_ENEMY
 	if needs_enemy and (not target_locked or not is_instance_valid(target_locked)):
-		combat_system.ability_failed.emit("No target", ability)
-		return
+		var nearest = _find_nearest_enemy_in_range(ability.ability_range)
+		if nearest:
+			_set_target(nearest)
+		else:
+			combat_system.ability_failed.emit("No target", ability)
+			return
 	var target = target_locked if needs_enemy else null
 	combat_system.try_use_ability(ability, target)
+
+func _find_nearest_enemy_in_range(max_range: float) -> Node3D:
+	var enemies = _get_valid_enemies()
+	for e in enemies:
+		if global_position.distance_to(e.global_position) <= max_range:
+			return e
+	return null
 
 func _set_target(new_target: Node3D) -> void:
 	target_locked = new_target
