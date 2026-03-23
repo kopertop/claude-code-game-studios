@@ -27,3 +27,11 @@ enum DamageType { PHYSICAL, FIRE, SHADOW, ARCANE, NATURE, NONE }
 @export var dot_tick_interval: float = 0.0
 @export var dot_duration: float = 0.0
 @export var lifesteal_pct: float = 0.0
+@export var is_debuff: bool = false
+@export var debuff_duration: float = 0.0
+@export var debuff_damage_reduction: float = 0.0
+@export var debuff_lifesteal_on_hit: float = 0.0
+@export var debuff_dot_damage: float = 0.0
+@export var debuff_dot_interval: float = 0.0
+@export var projectile_speed: float = 0.0
+@export var projectile_color: Color = Color.WHITE

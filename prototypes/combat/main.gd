@@ -13,12 +13,112 @@ var session_start: float = 0.0
 var respawn_timer: float = 0.0
 const RESPAWN_DELAY: float = 5.0
 
+var pause_overlay: CanvasLayer
+var pause_label: Label
+var pause_hint: Label
+var pause_resume_btn: Button
+var is_paused: bool = false
+var controller_disconnected: bool = false
+
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	session_start = Time.get_ticks_msec() / 1000.0
 	_build_arena()
 	_spawn_player()
 	_setup_hud()
 	_spawn_enemies()
+	_build_pause_overlay()
+	Input.joy_connection_changed.connect(_on_joy_connection_changed)
+	if Input.get_connected_joypads().is_empty():
+		_pause_for_controller("No controller detected")
+
+func _build_pause_overlay() -> void:
+	pause_overlay = CanvasLayer.new()
+	pause_overlay.layer = 10
+	pause_overlay.process_mode = Node.PROCESS_MODE_ALWAYS
+
+	var bg = ColorRect.new()
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.color = Color(0, 0, 0, 0.6)
+	pause_overlay.add_child(bg)
+
+	pause_label = Label.new()
+	pause_label.text = "PAUSED"
+	pause_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	pause_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	pause_label.set_anchors_preset(Control.PRESET_CENTER)
+	pause_label.position = Vector2(-200, -50)
+	pause_label.size = Vector2(400, 60)
+	pause_label.add_theme_font_size_override("font_size", 48)
+	pause_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.9))
+	pause_overlay.add_child(pause_label)
+
+	pause_hint = Label.new()
+	pause_hint.text = "Press + to resume"
+	pause_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	pause_hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	pause_hint.set_anchors_preset(Control.PRESET_CENTER)
+	pause_hint.position = Vector2(-200, 10)
+	pause_hint.size = Vector2(400, 30)
+	pause_hint.add_theme_font_size_override("font_size", 18)
+	pause_hint.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 0.8))
+	pause_overlay.add_child(pause_hint)
+
+	pause_resume_btn = Button.new()
+	pause_resume_btn.text = "Continue without controller"
+	pause_resume_btn.set_anchors_preset(Control.PRESET_CENTER)
+	pause_resume_btn.position = Vector2(-100, 50)
+	pause_resume_btn.size = Vector2(200, 36)
+	pause_resume_btn.visible = false
+	pause_resume_btn.pressed.connect(_on_resume_without_controller)
+	pause_overlay.add_child(pause_resume_btn)
+
+	add_child(pause_overlay)
+	pause_overlay.visible = false
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("pause_menu"):
+		if controller_disconnected:
+			return
+		_toggle_pause()
+		get_viewport().set_input_as_handled()
+
+func _toggle_pause() -> void:
+	is_paused = not is_paused
+	get_tree().paused = is_paused
+	pause_overlay.visible = is_paused
+	if is_paused:
+		pause_label.text = "PAUSED"
+		pause_hint.text = "Press + to resume"
+		pause_resume_btn.visible = false
+	controller_disconnected = false
+
+func _on_joy_connection_changed(device: int, connected: bool) -> void:
+	if not connected and Input.get_connected_joypads().is_empty():
+		_pause_for_controller("Controller disconnected")
+	elif connected and controller_disconnected:
+		_resume_from_controller_pause()
+
+func _pause_for_controller(reason: String) -> void:
+	controller_disconnected = true
+	is_paused = true
+	get_tree().paused = true
+	pause_overlay.visible = true
+	pause_label.text = reason.to_upper()
+	pause_hint.text = "Reconnect controller to resume"
+	pause_resume_btn.visible = true
+
+func _resume_from_controller_pause() -> void:
+	controller_disconnected = false
+	is_paused = false
+	get_tree().paused = false
+	pause_overlay.visible = false
+
+func _on_resume_without_controller() -> void:
+	controller_disconnected = false
+	is_paused = false
+	get_tree().paused = false
+	pause_overlay.visible = false
 
 func _build_arena() -> void:
 	# Ground plane
@@ -95,6 +195,7 @@ func _spawn_player() -> void:
 	player.set_script(load("res://player.gd"))
 	player.position = Vector3(0, 0, 0)
 	player.add_to_group("player")
+	player.process_mode = Node.PROCESS_MODE_PAUSABLE
 	add_child(player)
 
 	player.combat_system.damage_dealt.connect(_on_damage_tracked)
@@ -102,6 +203,7 @@ func _spawn_player() -> void:
 func _setup_hud() -> void:
 	hud = CanvasLayer.new()
 	hud.set_script(load("res://combat_hud.gd"))
+	hud.process_mode = Node.PROCESS_MODE_PAUSABLE
 	add_child(hud)
 	hud.connect_player(player)
 	hud.update_slot_colors()
@@ -119,6 +221,7 @@ func _spawn_enemy_at(pos: Vector3) -> void:
 	var enemy = CharacterBody3D.new()
 	enemy.set_script(load("res://enemy.gd"))
 	enemy.position = pos
+	enemy.process_mode = Node.PROCESS_MODE_PAUSABLE
 	add_child(enemy)
 	enemy.enemy_died.connect(_on_enemy_died)
 	enemy.hp_changed.connect(func(_c, _m): pass)
@@ -131,6 +234,8 @@ func _on_damage_tracked(_target: Node3D, amount: float, _crit: bool, _dtype: int
 	total_damage += amount
 
 func _process(delta: float) -> void:
+	if is_paused:
+		return
 	var alive_enemies = get_tree().get_nodes_in_group("enemies").filter(
 		func(e): return not (e.has_method("is_dead") and e.is_dead())
 	)

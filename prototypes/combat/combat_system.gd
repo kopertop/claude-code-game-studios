@@ -4,6 +4,7 @@
 extends Node
 
 const AbilityData = preload("res://ability_data.gd")
+const Projectile = preload("res://projectile.gd")
 
 signal ability_fired(ability: AbilityData, target: Node3D)
 signal ability_failed(reason: String, ability: AbilityData)
@@ -16,8 +17,8 @@ signal cast_cancelled()
 signal damage_dealt(target: Node3D, amount: float, is_crit: bool, damage_type: int)
 signal healing_done(target: Node3D, amount: float, is_crit: bool)
 
-const BASE_GCD: float = 1.5
-const MIN_GCD: float = 0.75
+const BASE_GCD: float = 0.5
+const MIN_GCD: float = 0.3
 const GCD_QUEUE_WINDOW: float = 0.5
 const MELEE_RANGE: float = 3.0
 const ARMOR_CONSTANT: float = 500.0
@@ -135,7 +136,47 @@ func _execute_ability(ability: AbilityData, target: Node3D) -> void:
 
 	ability_fired.emit(ability, target)
 
+	# Projectile abilities defer effects until impact
+	if ability.projectile_speed > 0 and target and owner_node:
+		_spawn_projectile(ability, target, owner_node)
+		return
+
+	# Instant effects
+	_apply_effects(ability, target)
+
+func _spawn_projectile(ability: AbilityData, target: Node3D, source: Node3D) -> void:
+	var spawn_pos = source.global_position + Vector3(0, 1.2, 0)
+	var proj = Node3D.new()
+	proj.set_script(Projectile)
+	proj.target = target
+	proj.speed = ability.projectile_speed
+	proj.color = ability.projectile_color
+	proj.on_hit = func(): _apply_effects(ability, target)
+	proj.process_mode = Node.PROCESS_MODE_PAUSABLE
+	source.get_tree().current_scene.add_child(proj)
+	proj.global_position = spawn_pos
+
+func _apply_effects(ability: AbilityData, target: Node3D) -> void:
+	var owner_node = get_parent()
+
+	# Debuff abilities
+	if ability.is_debuff and target and is_instance_valid(target) and target.has_method("apply_debuff"):
+		var debuff = {
+			"id": ability.id,
+			"display_name": ability.display_name,
+			"remaining": ability.debuff_duration,
+			"duration": ability.debuff_duration,
+			"damage_reduction": ability.debuff_damage_reduction,
+			"lifesteal_on_hit": ability.debuff_lifesteal_on_hit,
+			"dot_damage": ability.debuff_dot_damage,
+			"dot_interval": ability.debuff_dot_interval,
+			"dot_timer": ability.debuff_dot_interval,
+		}
+		target.apply_debuff(debuff)
+		return
+
 	var total_damage_done: float = 0.0
+	var damage_per_target: Dictionary = {}
 
 	if ability.base_damage > 0.0:
 		if ability.target_type == AbilityData.TargetType.AOE_AROUND_SELF and owner_node:
@@ -149,17 +190,30 @@ func _execute_ability(ability: AbilityData, target: Node3D) -> void:
 					if e.has_method("take_damage"):
 						e.take_damage(result.amount)
 					total_damage_done += result.amount
-		elif target:
+					damage_per_target[e] = result.amount
+		elif target and is_instance_valid(target):
 			var result = calculate_damage(ability, player_stats, target)
 			damage_dealt.emit(target, result.amount, result.is_crit, ability.damage_type)
 			if target.has_method("take_damage"):
 				target.take_damage(result.amount)
 			total_damage_done += result.amount
+			damage_per_target[target] = result.amount
 
+	# Ability-level lifesteal (e.g., Fel Cataclysm)
 	if ability.lifesteal_pct > 0.0 and total_damage_done > 0.0 and owner_node and owner_node.has_method("heal"):
 		var heal_amount = total_damage_done * ability.lifesteal_pct
 		healing_done.emit(owner_node, heal_amount, false)
 		owner_node.heal(heal_amount)
+
+	# Debuff-level lifesteal (e.g., Curse of Agony on target)
+	if owner_node and owner_node.has_method("heal"):
+		for t in damage_per_target:
+			if is_instance_valid(t) and t.has_method("get_lifesteal_bonus"):
+				var ls = t.get_lifesteal_bonus()
+				if ls > 0:
+					var heal_amt = damage_per_target[t] * ls
+					healing_done.emit(owner_node, heal_amt, false)
+					owner_node.heal(heal_amt)
 
 	if ability.base_healing > 0.0 and owner_node and owner_node.has_method("heal"):
 		var heal_result = calculate_healing(ability, player_stats)

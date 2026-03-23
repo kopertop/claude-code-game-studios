@@ -21,6 +21,7 @@ var gcd_overlay_duration: float = 0.0
 var target_hp_bar: ProgressBar
 var target_label: Label
 var target_container: Control
+var debuff_label: Label
 var damage_number_container: Control
 var debug_label: Label
 var spellbar_label: Label
@@ -148,7 +149,7 @@ func _build_ui() -> void:
 	target_container = Control.new()
 	target_container.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	target_container.position = Vector2(-150, 20)
-	target_container.size = Vector2(300, 40)
+	target_container.size = Vector2(300, 60)
 	target_container.visible = false
 	add_child(target_container)
 
@@ -166,6 +167,14 @@ func _build_ui() -> void:
 	target_hp_bar.show_percentage = false
 	_style_bar(target_hp_bar, Color(0.8, 0.15, 0.1), Color(0.25, 0.05, 0.02))
 	target_container.add_child(target_hp_bar)
+
+	debuff_label = Label.new()
+	debuff_label.position = Vector2(0, 40)
+	debuff_label.size = Vector2(300, 18)
+	debuff_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	debuff_label.add_theme_font_size_override("font_size", 13)
+	debuff_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.6))
+	target_container.add_child(debuff_label)
 
 	# Damage numbers
 	damage_number_container = Control.new()
@@ -248,13 +257,20 @@ func _process(delta: float) -> void:
 				if ult_overlay:
 					ult_overlay.visible = false
 
-	# Target frame
+	# Target frame + debuffs
 	if player and player.target_locked and is_instance_valid(player.target_locked):
 		var enemy = player.target_locked
 		target_container.visible = true
 		if enemy.has_method("is_dead") and not enemy.is_dead():
 			target_label.text = "Enemy"
 			target_hp_bar.value = (enemy.current_hp / enemy.max_hp) * 100
+			var debuff_text = ""
+			if enemy.get("debuffs"):
+				for d in enemy.debuffs:
+					var name_parts = d.display_name.split(" ")
+					var emoji = name_parts[0] if name_parts.size() > 0 else "?"
+					debuff_text += "%s %ds  " % [emoji, int(ceil(d.remaining))]
+			debuff_label.text = debuff_text
 		else:
 			target_container.visible = false
 	else:

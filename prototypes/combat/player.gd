@@ -279,9 +279,7 @@ func _update_input() -> void:
 		is_crouching = not is_crouching
 		is_running = false if is_crouching else is_running
 
-	# Pause / Inventory
-	if Input.is_action_just_pressed("pause_menu"):
-		get_tree().paused = not get_tree().paused
+	# Inventory
 	if Input.is_action_just_pressed("inventory"):
 		pass
 

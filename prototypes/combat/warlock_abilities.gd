@@ -15,8 +15,9 @@ static func create_all() -> Array[AbilityData]:
 	basic.description = "Melee weapon hit infused with shadow"
 	basic.resource_cost = 0
 	basic.cast_time = 0.0
-	basic.gcd_trigger = true
-	basic.cooldown = 0.0
+	basic.gcd_trigger = false
+	basic.is_off_gcd = true
+	basic.cooldown = 1.0
 	basic.ability_range = 3.0
 	basic.target_type = AbilityData.TargetType.SINGLE_ENEMY
 	basic.damage_type = AbilityData.DamageType.SHADOW
@@ -36,7 +37,7 @@ static func create_all() -> Array[AbilityData]:
 	sbolt.display_name = "🔮 Shadow Bolt"
 	sbolt.description = "Hurls a bolt of shadow energy"
 	sbolt.resource_cost = 20
-	sbolt.cast_time = 1.8
+	sbolt.cast_time = 1.0
 	sbolt.gcd_trigger = true
 	sbolt.cooldown = 0.0
 	sbolt.ability_range = 25.0
@@ -45,14 +46,16 @@ static func create_all() -> Array[AbilityData]:
 	sbolt.base_damage = 25.0
 	sbolt.scaling_coefficient = 2.0
 	sbolt.can_crit = true
+	sbolt.projectile_speed = 18.0
+	sbolt.projectile_color = Color(0.5, 0.1, 0.8)
 	sbolt.icon_color = Color(0.4, 0.1, 0.6)
 	abilities.append(sbolt)
 
-	# Slot 2 (R2+B): Curse of Agony - instant DoT
+	# Slot 2: Curse of Agony - debuff: reduces enemy damage, heals us on hit
 	var coa = AbilityData.new()
 	coa.id = "curse_of_agony"
 	coa.display_name = "💀 Curse of Agony"
-	coa.description = "Curses the target, dealing shadow damage over time"
+	coa.description = "Weakens the target — they deal less damage and your attacks drain their life"
 	coa.resource_cost = 15
 	coa.cast_time = 0.0
 	coa.gcd_trigger = true
@@ -60,19 +63,22 @@ static func create_all() -> Array[AbilityData]:
 	coa.ability_range = 25.0
 	coa.target_type = AbilityData.TargetType.SINGLE_ENEMY
 	coa.damage_type = AbilityData.DamageType.SHADOW
-	coa.base_damage = 60.0
-	coa.scaling_coefficient = 1.5
+	coa.base_damage = 0.0
 	coa.can_crit = false
-	coa.dot_tick_interval = 2.0
-	coa.dot_duration = 12.0
+	coa.is_debuff = true
+	coa.debuff_duration = 30.0
+	coa.debuff_damage_reduction = 0.3
+	coa.debuff_lifesteal_on_hit = 0.15
+	coa.projectile_speed = 22.0
+	coa.projectile_color = Color(0.4, 0.0, 0.5)
 	coa.icon_color = Color(0.5, 0.0, 0.5)
 	abilities.append(coa)
 
-	# Slot 3 (R2+X): Immolate - instant fire damage + fire DoT
+	# Slot 3: Immolate - debuff: burns target for 5 damage/sec for 5 seconds
 	var immo = AbilityData.new()
 	immo.id = "immolate"
 	immo.display_name = "🔥 Immolate"
-	immo.description = "Burns the target with fel fire"
+	immo.description = "Sets the target ablaze, burning them over time"
 	immo.resource_cost = 18
 	immo.cast_time = 0.0
 	immo.gcd_trigger = true
@@ -80,11 +86,14 @@ static func create_all() -> Array[AbilityData]:
 	immo.ability_range = 25.0
 	immo.target_type = AbilityData.TargetType.SINGLE_ENEMY
 	immo.damage_type = AbilityData.DamageType.FIRE
-	immo.base_damage = 15.0
-	immo.scaling_coefficient = 1.2
-	immo.can_crit = true
-	immo.dot_tick_interval = 3.0
-	immo.dot_duration = 15.0
+	immo.base_damage = 0.0
+	immo.can_crit = false
+	immo.is_debuff = true
+	immo.debuff_duration = 5.0
+	immo.debuff_dot_damage = 5.0
+	immo.debuff_dot_interval = 1.0
+	immo.projectile_speed = 22.0
+	immo.projectile_color = Color(1.0, 0.4, 0.0)
 	immo.icon_color = Color(1.0, 0.4, 0.0)
 	abilities.append(immo)
 

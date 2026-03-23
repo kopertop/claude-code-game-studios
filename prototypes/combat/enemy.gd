@@ -5,6 +5,7 @@ extends CharacterBody3D
 
 signal hp_changed(current: float, maximum: float)
 signal enemy_died(enemy: Node3D)
+signal debuff_changed()
 
 const MOVE_SPEED: float = 3.0
 const ATTACK_RANGE: float = 2.5
@@ -19,6 +20,7 @@ var attack_timer: float = 0.0
 var is_aggro: bool = false
 var player: Node3D = null
 var dead: bool = false
+var debuffs: Array = []
 
 var mesh: MeshInstance3D
 var hp_bar: Node
@@ -51,6 +53,8 @@ func _setup_visuals() -> void:
 func _physics_process(delta: float) -> void:
 	if dead:
 		return
+
+	_tick_debuffs(delta)
 
 	if not player:
 		_find_player()
@@ -93,7 +97,8 @@ func _find_player() -> void:
 
 func _attack() -> void:
 	if player and player.has_method("take_damage"):
-		player.take_damage(ATTACK_DAMAGE, self)
+		var dmg = ATTACK_DAMAGE * (1.0 - get_damage_reduction())
+		player.take_damage(dmg, self)
 		_flash_attack()
 
 func _flash_attack() -> void:
@@ -103,6 +108,49 @@ func _flash_attack() -> void:
 		mat.emission_energy_multiplier = 3.0
 		var tween = create_tween()
 		tween.tween_property(mat, "emission_energy_multiplier", original, 0.3)
+
+func apply_debuff(debuff: Dictionary) -> void:
+	for i in range(debuffs.size()):
+		if debuffs[i].id == debuff.id:
+			debuffs[i] = debuff
+			debuff_changed.emit()
+			return
+	debuffs.append(debuff)
+	debuff_changed.emit()
+
+func _tick_debuffs(delta: float) -> void:
+	if debuffs.is_empty():
+		return
+	var changed = false
+	var to_remove: Array = []
+	for i in range(debuffs.size()):
+		var d = debuffs[i]
+		d.remaining -= delta
+		if d.remaining <= 0:
+			to_remove.append(i)
+			changed = true
+			continue
+		if d.dot_damage > 0 and d.dot_interval > 0:
+			d.dot_timer -= delta
+			if d.dot_timer <= 0:
+				d.dot_timer += d.dot_interval
+				take_damage(d.dot_damage)
+	for i in range(to_remove.size() - 1, -1, -1):
+		debuffs.remove_at(to_remove[i])
+	if changed:
+		debuff_changed.emit()
+
+func get_damage_reduction() -> float:
+	var reduction = 0.0
+	for d in debuffs:
+		reduction += d.get("damage_reduction", 0.0)
+	return clampf(reduction, 0.0, 0.9)
+
+func get_lifesteal_bonus() -> float:
+	var bonus = 0.0
+	for d in debuffs:
+		bonus += d.get("lifesteal_on_hit", 0.0)
+	return bonus
 
 func take_damage(amount: float) -> void:
 	if dead:
