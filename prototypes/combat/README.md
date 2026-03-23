@@ -2,7 +2,7 @@
 
 **Hypothesis**: Does WoW-style GCD rotation feel fun on a gamepad in Godot 4.6?
 
-**Status**: In Progress
+**Status**: Concluded — Hypothesis Validated
 
 ## How to Run
 
@@ -109,18 +109,49 @@ Tested with Nintendo-style controller (A/B and X/Y positions may differ on Xbox-
 - Cooldowns shown as countdown text on slots
 - Ultimate shows remaining cooldown in seconds with overlay
 
-## Known Issues / TODO
+## Known Limitations (not blocking — prototype is concluded)
 
-- DoTs defined but tick damage not yet implemented
-- Interact (X) not wired to anything
-- Inventory (-) not wired to anything
+- Interact (X) and Inventory (-) not wired
 - No visual/audio feedback for dodge, jump, spellbar switch
-- No VFX for abilities (projectiles, impact effects, shockwave)
-- Damage numbers positioned at fixed screen coords, not projected from 3D
-- Grip buttons (ML/MR) not mapped — planned for quick-action settings
-- Pause doesn't show a menu overlay, just freezes
-- Controller button mapping assumes Nintendo layout (A/B, X/Y positions)
+- No VFX for shockwave (Cataclysm), melee swings
+- Damage numbers at fixed screen coords, not projected from 3D
+- Grip buttons (ML/MR) not mapped
+- Drain Life channeling not implemented
+- No player death state
+- No enemy variety (all identical)
+- Controller mapping assumes Nintendo layout (A/B, X/Y swapped vs Xbox)
 
 ## Findings
 
-(Updated as playtesting progresses)
+**Hypothesis validated**: WoW-style GCD rotation feels fun on a gamepad in Godot 4.6,
+with significant adaptations.
+
+### What worked
+1. **L2 modifier pattern** — physical actions on face buttons, spells behind L2 hold. Players can always jump/dodge mid-combat without mode switching.
+2. **0.5s GCD** — much faster than WoW's 1.5s, matches controller input speed. Feels responsive, not sluggish.
+3. **Off-GCD basic attack weaving** — R2 on its own 1.0s cooldown, independent of spell GCD. Creates satisfying rhythm.
+4. **Mana-from-attacks** — forcing basic attack engagement makes weapons feel valuable and creates real resource decisions.
+5. **Generous dodge (0.3s i-frames)** — easy to execute, skill is in choosing WHEN to dodge (opportunity cost).
+6. **Projectile deferred damage** — adds visual clarity and tension. Watching a Shadow Bolt fly is satisfying.
+7. **Debuff rotation** — even with just Curse (utility) + Immolate (DoT), meaningful decisions emerge.
+8. **D-pad spellbar switching** — 4 bars × 4 slots = 16 spells accessible without complex combos.
+
+### What didn't work (iterated away)
+1. **Modal input (combat mode vs explore mode)** — confusing, removed in favor of always-available physical actions.
+2. **R1/L1 as spell modifier** — triggers (L2/R2) are more natural for "hold while pressing" than bumpers.
+3. **Face buttons as ability slots** — can't dodge if A/B are spell slots. Critical failure.
+4. **Camera pitch control** — allowing vertical camera rotation caused disorienting angles. Zoom only.
+5. **Auto-targeting all attacks** — felt like the game was playing itself. Require explicit target with range-based fallback.
+
+### Key insight
+The controller mapping that feels right was NOT what was originally expected. The prototype went through 3 major input revisions before landing on the L2-modifier pattern. **Prototype input mappings early.**
+
+### Informs these GDDs
+- `design/gdd/input-system.md` — L2 modifier pattern validated, modal input rejected
+- `design/gdd/ability-rotation-combat.md` — 0.5s GCD, off-GCD weaving, debuff rotation validated
+- `design/gdd/health-resource-system.md` — mana-from-attacks, no passive combat regen validated
+- `design/gdd/damage-calculation.md` — armor/resistance formula, crit system, lifesteal validated
+- `design/gdd/camera-system.md` — orbit-only camera (no pitch), zoom range validated
+- `design/gdd/pause-system.md` — controller disconnect handling validated
+
+See `CONCEPT.md` for the full reverse-documented design with all tuning values.
