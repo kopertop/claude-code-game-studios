@@ -6,6 +6,7 @@ var speed: float = 15.0
 var color: Color = Color.WHITE
 var on_hit: Callable
 var miss_range: float = 40.0
+var hit: bool = false
 
 var mesh: MeshInstance3D
 var trail_particles: GPUParticles3D
@@ -49,6 +50,8 @@ func _setup_visuals() -> void:
 	add_child(trail_particles)
 
 func _process(delta: float) -> void:
+	if hit:
+		return
 	if not target or not is_instance_valid(target):
 		queue_free()
 		return
@@ -59,6 +62,7 @@ func _process(delta: float) -> void:
 
 	var dist = global_position.distance_to(target_pos)
 	if dist < 0.6:
+		hit = true
 		if on_hit.is_valid():
 			on_hit.call()
 		_explode()

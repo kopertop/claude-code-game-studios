@@ -43,8 +43,8 @@ static func create_all() -> Array[AbilityData]:
 	sbolt.ability_range = 25.0
 	sbolt.target_type = AbilityData.TargetType.SINGLE_ENEMY
 	sbolt.damage_type = AbilityData.DamageType.SHADOW
-	sbolt.base_damage = 25.0
-	sbolt.scaling_coefficient = 2.0
+	sbolt.base_damage = 15.0
+	sbolt.scaling_coefficient = 0.6
 	sbolt.can_crit = true
 	sbolt.projectile_speed = 18.0
 	sbolt.projectile_color = Color(0.5, 0.1, 0.8)
