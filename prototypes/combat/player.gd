@@ -123,9 +123,9 @@ func _create_target_indicator() -> void:
 	quad.size = Vector2(2.0, 2.0)
 	target_indicator.mesh = quad
 	var mat = StandardMaterial3D.new()
-	mat.albedo_color = Color(1.0, 0.7, 0.0, 0.8)
+	mat.albedo_texture = _generate_reticle_texture()
 	mat.emission_enabled = true
-	mat.emission = Color(1.0, 0.5, 0.0)
+	mat.emission = Color(1.0, 0.2, 0.1)
 	mat.emission_energy_multiplier = 2.0
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.no_depth_test = true
@@ -134,6 +134,36 @@ func _create_target_indicator() -> void:
 	target_indicator.material_override = mat
 	target_indicator.visible = false
 	get_parent().call_deferred("add_child", target_indicator)
+
+func _generate_reticle_texture() -> ImageTexture:
+	var size = 128
+	var center = size / 2.0
+	var img = Image.create(size, size, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var col = Color(1.0, 0.15, 0.1, 1.0)
+	var outer_r = 48.0
+	var inner_r = 20.0
+	var line_w = 3.0
+	var cross_inner = 38.0
+	var cross_outer = 62.0
+	for x in range(size):
+		for y in range(size):
+			var dx = x - center
+			var dy = y - center
+			var dist = sqrt(dx * dx + dy * dy)
+			var pixel = Color(0, 0, 0, 0)
+			if abs(dist - outer_r) < line_w:
+				pixel = col
+			elif abs(dist - inner_r) < line_w:
+				pixel = col
+			elif absf(dx) < line_w and (dist > cross_inner and dist < cross_outer):
+				pixel = col
+			elif absf(dy) < line_w and (dist > cross_inner and dist < cross_outer):
+				pixel = col
+			if pixel.a > 0:
+				img.set_pixel(x, y, pixel)
+	var tex = ImageTexture.create_from_image(img)
+	return tex
 
 func _get_move_speed() -> float:
 	if is_crouching:
@@ -260,30 +290,24 @@ func _update_input() -> void:
 
 	# L2 + R1 bumper = Major Spell (ultimate)
 	if l2 and Input.is_action_just_pressed("target_next") and major_spell_ability:
-		_auto_target_if_needed()
-		combat_system.try_use_ability(major_spell_ability, target_locked)
+		_try_use_ability_smart(major_spell_ability)
 		return
 
 	# R2 = always basic attack (even if L2 held)
 	if r2_just:
-		_auto_target_if_needed()
 		if basic_attack_ability:
-			combat_system.try_use_ability(basic_attack_ability, target_locked)
+			_try_use_ability_smart(basic_attack_ability)
 		return
 
 	# L2 + face buttons = spell slots
 	if l2:
 		if Input.is_action_just_pressed("face_a"):
-			_auto_target_if_needed()
 			_activate_spell_slot(0)
 		elif Input.is_action_just_pressed("face_b"):
-			_auto_target_if_needed()
 			_activate_spell_slot(1)
 		elif Input.is_action_just_pressed("face_x"):
-			_auto_target_if_needed()
 			_activate_spell_slot(2)
 		elif Input.is_action_just_pressed("face_y"):
-			_auto_target_if_needed()
 			_activate_spell_slot(3)
 		return
 
@@ -300,9 +324,7 @@ func _update_input() -> void:
 func _activate_spell_slot(slot: int) -> void:
 	if not hotbar.has(slot):
 		return
-	var ability = hotbar[slot]
-	ability_slot_activated.emit(slot)
-	combat_system.try_use_ability(ability, target_locked)
+	_try_use_ability_smart(hotbar[slot])
 
 func _perform_jump() -> void:
 	if is_on_floor() and not is_dodging:
@@ -333,12 +355,13 @@ func _perform_dodge() -> void:
 	dodge_cooldown_timer = DODGE_COOLDOWN
 	dodge_performed.emit()
 
-func _auto_target_if_needed() -> void:
-	if target_locked and is_instance_valid(target_locked):
+func _try_use_ability_smart(ability) -> void:
+	var needs_enemy = ability.target_type == AbilityData.TargetType.SINGLE_ENEMY
+	if needs_enemy and (not target_locked or not is_instance_valid(target_locked)):
+		combat_system.ability_failed.emit("No target", ability)
 		return
-	var enemies = _get_valid_enemies()
-	if not enemies.is_empty():
-		_set_target(enemies[0])
+	var target = target_locked if needs_enemy else null
+	combat_system.try_use_ability(ability, target)
 
 func _set_target(new_target: Node3D) -> void:
 	target_locked = new_target
