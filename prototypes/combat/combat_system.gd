@@ -135,11 +135,31 @@ func _execute_ability(ability: AbilityData, target: Node3D) -> void:
 
 	ability_fired.emit(ability, target)
 
-	if ability.base_damage > 0.0 and target:
-		var result = calculate_damage(ability, player_stats, target)
-		damage_dealt.emit(target, result.amount, result.is_crit, ability.damage_type)
-		if target.has_method("take_damage"):
-			target.take_damage(result.amount)
+	var total_damage_done: float = 0.0
+
+	if ability.base_damage > 0.0:
+		if ability.target_type == AbilityData.TargetType.AOE_AROUND_SELF and owner_node:
+			var enemies = owner_node.get_tree().get_nodes_in_group("enemies")
+			for e in enemies:
+				if not e is Node3D or (e.has_method("is_dead") and e.is_dead()):
+					continue
+				if owner_node.global_position.distance_to(e.global_position) <= ability.ability_range:
+					var result = calculate_damage(ability, player_stats, e)
+					damage_dealt.emit(e, result.amount, result.is_crit, ability.damage_type)
+					if e.has_method("take_damage"):
+						e.take_damage(result.amount)
+					total_damage_done += result.amount
+		elif target:
+			var result = calculate_damage(ability, player_stats, target)
+			damage_dealt.emit(target, result.amount, result.is_crit, ability.damage_type)
+			if target.has_method("take_damage"):
+				target.take_damage(result.amount)
+			total_damage_done += result.amount
+
+	if ability.lifesteal_pct > 0.0 and total_damage_done > 0.0 and owner_node and owner_node.has_method("heal"):
+		var heal_amount = total_damage_done * ability.lifesteal_pct
+		healing_done.emit(owner_node, heal_amount, false)
+		owner_node.heal(heal_amount)
 
 	if ability.base_healing > 0.0 and owner_node and owner_node.has_method("heal"):
 		var heal_result = calculate_healing(ability, player_stats)

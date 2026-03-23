@@ -93,7 +93,7 @@ func _find_player() -> void:
 
 func _attack() -> void:
 	if player and player.has_method("take_damage"):
-		player.take_damage(ATTACK_DAMAGE)
+		player.take_damage(ATTACK_DAMAGE, self)
 		_flash_attack()
 
 func _flash_attack() -> void:

@@ -26,3 +26,4 @@ enum DamageType { PHYSICAL, FIRE, SHADOW, ARCANE, NATURE, NONE }
 @export var icon_color: Color = Color.WHITE
 @export var dot_tick_interval: float = 0.0
 @export var dot_duration: float = 0.0
+@export var lifesteal_pct: float = 0.0

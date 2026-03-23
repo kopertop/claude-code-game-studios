@@ -11,7 +11,7 @@ static func create_all() -> Array[AbilityData]:
 	# Basic Attack (X button, no modifier) - melee staff/weapon hit
 	var basic = AbilityData.new()
 	basic.id = "warlock_strike"
-	basic.display_name = "Fel Strike"
+	basic.display_name = "⚔️ Fel Strike"
 	basic.description = "Melee weapon hit infused with shadow"
 	basic.resource_cost = 0
 	basic.cast_time = 0.0
@@ -23,14 +23,17 @@ static func create_all() -> Array[AbilityData]:
 	basic.base_damage = 8.0
 	basic.scaling_coefficient = 0.8
 	basic.can_crit = true
-	basic.is_builder = false
+	basic.is_builder = true
+	basic.builder_amount = 15
+	basic.base_healing = 5.0
+	basic.lifesteal_pct = 0.1
 	basic.icon_color = Color(0.6, 0.2, 0.8)
 	abilities.append(basic)
 
 	# Slot 1 (R2+A): Shadow Bolt - bread and butter cast-time nuke
 	var sbolt = AbilityData.new()
 	sbolt.id = "shadow_bolt"
-	sbolt.display_name = "Shadow Bolt"
+	sbolt.display_name = "🔮 Shadow Bolt"
 	sbolt.description = "Hurls a bolt of shadow energy"
 	sbolt.resource_cost = 20
 	sbolt.cast_time = 1.8
@@ -48,7 +51,7 @@ static func create_all() -> Array[AbilityData]:
 	# Slot 2 (R2+B): Curse of Agony - instant DoT
 	var coa = AbilityData.new()
 	coa.id = "curse_of_agony"
-	coa.display_name = "Curse of Agony"
+	coa.display_name = "💀 Curse of Agony"
 	coa.description = "Curses the target, dealing shadow damage over time"
 	coa.resource_cost = 15
 	coa.cast_time = 0.0
@@ -68,7 +71,7 @@ static func create_all() -> Array[AbilityData]:
 	# Slot 3 (R2+X): Immolate - instant fire damage + fire DoT
 	var immo = AbilityData.new()
 	immo.id = "immolate"
-	immo.display_name = "Immolate"
+	immo.display_name = "🔥 Immolate"
 	immo.description = "Burns the target with fel fire"
 	immo.resource_cost = 18
 	immo.cast_time = 0.0
@@ -88,7 +91,7 @@ static func create_all() -> Array[AbilityData]:
 	# Slot 4 (R2+Y): Fel Cleave - instant melee AoE (battle mage feel)
 	var cleave = AbilityData.new()
 	cleave.id = "fel_cleave"
-	cleave.display_name = "Fel Cleave"
+	cleave.display_name = "🪓 Fel Cleave"
 	cleave.description = "Swing weapon in a wide arc, hitting all nearby enemies"
 	cleave.resource_cost = 30
 	cleave.cast_time = 0.0
@@ -106,7 +109,7 @@ static func create_all() -> Array[AbilityData]:
 	# Slot 5 (L2+A): Drain Life - channeled heal+damage
 	var drain = AbilityData.new()
 	drain.id = "drain_life"
-	drain.display_name = "Drain Life"
+	drain.display_name = "🩸 Drain Life"
 	drain.description = "Drains life from target, healing you"
 	drain.resource_cost = 25
 	drain.cast_time = 2.5
@@ -125,7 +128,7 @@ static func create_all() -> Array[AbilityData]:
 	# Slot 6 (L2+B): Dark Pact - off-GCD shield (instant, defensive cooldown)
 	var pact = AbilityData.new()
 	pact.id = "dark_pact"
-	pact.display_name = "Dark Pact"
+	pact.display_name = "🛡️ Dark Pact"
 	pact.description = "Sacrifice mana to shield yourself"
 	pact.resource_cost = 40
 	pact.cast_time = 0.0
@@ -140,5 +143,25 @@ static func create_all() -> Array[AbilityData]:
 	pact.can_crit = false
 	pact.icon_color = Color(0.3, 0.0, 0.5)
 	abilities.append(pact)
+
+	# Major Spell (L1+R1): Fel Cataclysm — massive AoE shockwave, 90s CD, heals 50% of damage
+	var cata = AbilityData.new()
+	cata.id = "fel_cataclysm"
+	cata.display_name = "💥 Fel Cataclysm"
+	cata.description = "Unleash a devastating shockwave, annihilating nearby enemies and draining their life force"
+	cata.resource_cost = 0
+	cata.cast_time = 0.0
+	cata.gcd_trigger = false
+	cata.is_off_gcd = true
+	cata.cooldown = 90.0
+	cata.ability_range = 20.0
+	cata.target_type = AbilityData.TargetType.AOE_AROUND_SELF
+	cata.damage_type = AbilityData.DamageType.SHADOW
+	cata.base_damage = 2000.0
+	cata.scaling_coefficient = 5.0
+	cata.can_crit = true
+	cata.lifesteal_pct = 0.5
+	cata.icon_color = Color(1.0, 0.0, 0.3)
+	abilities.append(cata)
 
 	return abilities
