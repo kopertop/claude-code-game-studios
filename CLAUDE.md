@@ -5,14 +5,15 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 
 ## Technology Stack
 
-- **Engine**: Godot 4.6
-- **Language**: GDScript (primary), C++ via GDExtension (performance-critical)
+- **Engine**: Unity 6.4
+- **Language**: C# (.NET)
 - **Version Control**: Git with trunk-based development
-- **Build System**: SCons (engine), Godot Export Templates
-- **Asset Pipeline**: Godot Import System + Godogen (vibe-coding workflow)
+- **Build System**: Unity Build System
+- **Rendering**: HDRP (High Definition Render Pipeline)
+- **Asset Pipeline**: Unity Asset Import + Asset Store packages
 
 > **Note**: Engine-specialist agents exist for Godot, Unity, and Unreal with
-> dedicated sub-specialists. Use the Godot set for this project.
+> dedicated sub-specialists. Use the Unity set for this project.
 
 ## Project Structure
 
@@ -20,7 +21,7 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 
 ## Engine Version Reference
 
-@docs/engine-reference/godot/VERSION.md
+Unity 6 LTS -- see Unity documentation at https://docs.unity3d.com/6000.0/Documentation/Manual/
 
 ## Technical Preferences
 
